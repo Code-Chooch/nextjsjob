@@ -6,9 +6,7 @@
     "dev": "next dev --turbopack",
     "build": "next build",
     "start": "next start",
-    "lint": "next lint",
-    "dr:build": "npx declarative-routing build",
-    "dr:build:watch": "npx declarative-routing build --watch"
+    "lint": "next lint"
   },
   "dependencies": {
     "@neondatabase/serverless": "^0.10.3",
@@ -18,7 +16,6 @@
     "babel-plugin-react-compiler": "19.0.0-beta-a7bf2bd-20241110",
     "class-variance-authority": "^0.7.0",
     "clsx": "^2.1.1",
-    "declarative-routing": "^0.1.20",
     "dotenv": "^16.4.5",
     "drizzle-orm": "^0.36.3",
     "lucide-react": "^0.459.0",

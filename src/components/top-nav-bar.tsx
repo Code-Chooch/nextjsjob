@@ -2,7 +2,6 @@
 
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
-import { Home } from "@/routes";
 import { Briefcase, Menu } from "lucide-react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
@@ -39,10 +38,10 @@ export default function Navbar() {
     <nav className="border-b">
       <div className="flex items-center justify-between px-4 py-3 mx-auto max-w-7xl sm:px-6 lg:px-8">
         <div className="flex items-center flex-shrink-0">
-          <Home.Link className="flex items-center">
+          <Link href="/" className="flex items-center">
             <Briefcase className="size-16 text-primary" />
             <span className="ml-2 text-5xl font-bold">JobHub</span>
-          </Home.Link>
+          </Link>
         </div>
         <div className="hidden space-x-8 lg:flex">
           <NavLinks />
@@ -73,13 +72,14 @@ export default function Navbar() {
             <SheetContent side="right" className="w-[300px] sm:w-[400px]">
               <div className="flex flex-col h-full">
                 <div className="flex items-center justify-between pb-4 border-b">
-                  <Home.Link
+                  <Link
+                    href="/"
                     className="flex items-center"
                     onClick={() => setIsOpen(false)}
                   >
                     <Briefcase className="w-8 h-8 text-primary" />
                     <span className="ml-2 text-xl font-bold">JobHub</span>
-                  </Home.Link>
+                  </Link>
                 </div>
                 <div className="flex flex-col py-4 space-y-4">
                   <NavLinks />
