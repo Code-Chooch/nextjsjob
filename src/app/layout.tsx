@@ -1,3 +1,4 @@
+import TopNavBar from "@/components/top-nav-bar";
 import { SpeedInsights } from "@vercel/speed-insights/next";
 import type { Metadata } from "next";
 import localFont from "next/font/local";
@@ -30,7 +31,10 @@ export default function RootLayout({
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
-        <NuqsAdapter>{children}</NuqsAdapter>
+        <NuqsAdapter>
+          <TopNavBar />
+          {children}
+        </NuqsAdapter>
         <SpeedInsights />
       </body>
     </html>
