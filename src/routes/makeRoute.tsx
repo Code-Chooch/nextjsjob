@@ -1,9 +1,9 @@
 /*
 Derived from: https://www.flightcontrol.dev/blog/fix-nextjs-routing-to-have-full-type-safety
 */
-import { z } from "zod";
-import queryString from "query-string";
 import Link from "next/link";
+import queryString from "query-string";
+import { z } from "zod";
 
 type LinkProps = Parameters<typeof Link>[0];
 
@@ -208,6 +208,7 @@ function createRouteBuilder<
   };
 }
 
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 const emptySchema = z.object({});
 
 export function makePostRoute<
@@ -241,8 +242,8 @@ export function makePostRoute<
       body: JSON.stringify(safeBody.data),
       headers: {
         ...(options?.headers || {}),
-        "Content-Type": "application/json"
-      }
+        "Content-Type": "application/json",
+      },
     })
       .then((res) => {
         if (!res.ok) {
@@ -304,8 +305,8 @@ export function makePutRoute<
       body: JSON.stringify(safeBody.data),
       headers: {
         ...(options?.headers || {}),
-        "Content-Type": "application/json"
-      }
+        "Content-Type": "application/json",
+      },
     })
       .then((res) => {
         if (!res.ok) {
@@ -399,8 +400,8 @@ export function makeDeleteRoute<
       method: "DELETE",
       headers: {
         ...(options?.headers || {}),
-        "Content-Type": "application/json"
-      }
+        "Content-Type": "application/json",
+      },
     }).then((res) => {
       if (!res.ok) {
         throw new Error(`Failed to fetch ${info.name}: ${res.statusText}`);

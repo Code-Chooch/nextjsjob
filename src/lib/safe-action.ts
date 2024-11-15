@@ -1,6 +1,7 @@
 import { createSafeActionClient } from "next-safe-action";
 import { z } from "zod";
 
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 class SafeActionError extends Error {}
 
 export const actionClient = createSafeActionClient({

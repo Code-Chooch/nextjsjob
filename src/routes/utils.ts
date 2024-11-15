@@ -1,3 +1,5 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
+
 import { z } from "zod";
 
 type ParsedData<T> = { error?: string; data?: T };
@@ -138,7 +140,7 @@ function parseValues(schema: any, values: string[]): ParsedData<any> {
           return {
             error:
               "unsupported array element type " +
-              String(elementSchema.constructor)
+              String(elementSchema.constructor),
           };
       }
     }
