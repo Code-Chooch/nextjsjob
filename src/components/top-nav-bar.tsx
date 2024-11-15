@@ -13,7 +13,7 @@ export default function Navbar() {
   const pathname = usePathname();
 
   const navigation = [
-    { name: "Jobs", href: "/jobs" },
+    { name: "Jobs", href: "/" },
     { name: "Consulting", href: "/consulting" },
     { name: "Login", href: "/login" },
   ];
@@ -27,6 +27,7 @@ export default function Navbar() {
           className={`text-xl font-bold transition-colors hover:text-primary ${
             pathname === item.href ? "text-primary" : "text-muted-foreground"
           }`}
+          onClick={() => setIsOpen(false)}
         >
           {item.name}
         </Link>
