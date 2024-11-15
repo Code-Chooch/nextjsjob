@@ -11,6 +11,7 @@
     "dr:build:watch": "npx declarative-routing build --watch"
   },
   "dependencies": {
+    "babel-plugin-react-compiler": "19.0.0-beta-a7bf2bd-20241110",
     "class-variance-authority": "^0.7.0",
     "clsx": "^2.1.1",
     "declarative-routing": "^0.1.20",
