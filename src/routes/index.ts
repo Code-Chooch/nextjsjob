@@ -7,12 +7,36 @@ const defaultInfo = {
 };
 
 import * as HomeRoute from "@/app/page.info";
+import * as ConsultingRoute from "@/app/consulting/page.info";
+import * as ConsultingNewRoute from "@/app/consulting/new/page.info";
+import * as JobsNewRoute from "@/app/jobs/new/page.info";
 
 export const Home = makeRoute(
   "/",
   {
     ...defaultInfo,
     ...HomeRoute.Route
+  }
+);
+export const Consulting = makeRoute(
+  "/consulting",
+  {
+    ...defaultInfo,
+    ...ConsultingRoute.Route
+  }
+);
+export const ConsultingNew = makeRoute(
+  "/consulting/new",
+  {
+    ...defaultInfo,
+    ...ConsultingNewRoute.Route
+  }
+);
+export const JobsNew = makeRoute(
+  "/jobs/new",
+  {
+    ...defaultInfo,
+    ...JobsNewRoute.Route
   }
 );
 
