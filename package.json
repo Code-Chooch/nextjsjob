@@ -37,6 +37,7 @@
     "nanoid": "^5.0.8",
     "next": "15.0.3",
     "next-safe-action": "^7.9.9",
+    "nuqs": "^2.2.2",
     "react": "19.0.0-rc-66855b96-20241106",
     "react-day-picker": "8.10.1",
     "react-dom": "19.0.0-rc-66855b96-20241106",
