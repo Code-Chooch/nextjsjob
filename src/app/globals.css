@@ -7,7 +7,6 @@ body {
 }
 
 @layer base {
-
   :root {
     --background: 136 0% 95%;
     --foreground: 136 0% 10%;
@@ -53,7 +52,6 @@ body {
     --ring: 136 66% 41%;
     --radius: 1rem;
   }
-
 }
 
 @layer base {
