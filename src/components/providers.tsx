@@ -4,7 +4,7 @@ import { ThemeProvider } from './theme-provider'
 
 export function Providers({ children }: { children: ReactNode }) {
   return (
-    <ThemeProvider>
+    <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
       <NuqsAdapter>{children}</NuqsAdapter>
     </ThemeProvider>
   )
