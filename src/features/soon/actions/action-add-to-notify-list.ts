@@ -22,7 +22,7 @@ export const addToNotifyList = unauthedActionClient
       .from(notifyTable)
       .where(eq(notifyTable.email, email))
 
-    if (existingEmail) {
+    if (existingEmail.length > 0) {
       return {
         success: false,
         message: 'The email you entered is already in the notify list.',
