@@ -1,8 +1,10 @@
+import { Footer } from '@/components/footer'
+import { Header } from '@/components/header'
+import { Providers } from '@/components/providers'
+import { SpeedInsights } from '@vercel/speed-insights/next'
 import type { Metadata } from 'next'
 import localFont from 'next/font/local'
 import './globals.css'
-import { Providers } from '@/components/providers'
-import { SpeedInsights } from '@vercel/speed-insights/next'
 
 const geistSans = localFont({
   src: './fonts/GeistVF.woff',
@@ -28,10 +30,12 @@ export default function RootLayout({
   return (
     <html lang="en" suppressHydrationWarning>
       <body
-        className={`${geistSans.variable} ${geistMono.variable} antialiased`}
+        className={`${geistSans.variable} ${geistMono.variable} antialiased flex flex-col min-h-screen`}
       >
         <Providers>
+          <Header />
           {children}
+          <Footer />
           <SpeedInsights />
         </Providers>
       </body>
