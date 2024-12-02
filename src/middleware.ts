@@ -18,7 +18,12 @@ export const config = {
 export async function middleware(request: NextRequest) {
   const goToSoon = await redirectAllPagesToComingSoon()
 
-  if (goToSoon) {
+  // Skip rewrite for image file extensions
+  const isImageRequest = /\.(jpg|jpeg|png|gif|webp|svg|ico)$/.test(
+    request.nextUrl.pathname
+  )
+
+  if (goToSoon && !isImageRequest) {
     if (!request.nextUrl.pathname.startsWith('/soon')) {
       return NextResponse.rewrite(new URL('/soon', request.url))
     }
