@@ -11,6 +11,9 @@ const schema = z.object({
 })
 
 export const addToNotifyList = unauthedActionClient
+  .metadata({
+    actionName: 'addToNotifyList',
+  })
   .schema(schema)
   .action(async ({ parsedInput: { email } }) => {
     // Check if email is already in the database
