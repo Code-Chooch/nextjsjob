@@ -4,6 +4,7 @@ import { ThemeToggle } from '@/components/theme-toggle'
 import { TypingHero } from '@/components/typing-hero'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
+import { useTheme } from 'next-themes'
 import Image from 'next/image'
 import { useRef, useState } from 'react'
 import ReCAPTCHA from 'react-google-recaptcha'
@@ -14,6 +15,7 @@ export default function Home() {
   const [message, setMessage] = useState('')
   const recaptchaRef = useRef<ReCAPTCHA>(null)
   const [isVerified, setIsVerified] = useState(false)
+  const { theme } = useTheme()
 
   const handleCaptchaSubmission = async (token: string | null) => {
     try {
@@ -63,7 +65,16 @@ export default function Home() {
     <div className="flex flex-col min-h-screen">
       <header className="p-4 border-b">
         <div className="container mx-auto flex items-center justify-between">
-          <Image src="/logo.png" alt="NextJobs" width={100} height={100} />
+          {theme === 'dark' ? (
+            <Image
+              src="/logo-dark.png"
+              alt="NextJobs"
+              width={250}
+              height={250}
+            />
+          ) : (
+            <Image src="/logo.png" alt="NextJobs" width={250} height={250} />
+          )}
           <ThemeToggle />
         </div>
       </header>
