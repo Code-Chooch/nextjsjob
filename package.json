@@ -31,6 +31,7 @@
     "@tanstack/table-core": "^8.20.5",
     "@types/react-google-recaptcha": "^2.1.9",
     "@vercel/flags": "^2.6.3",
+    "@vercel/speed-insights": "^1.1.0",
     "class-variance-authority": "^0.7.0",
     "clsx": "^2.1.1",
     "cmdk": "1.0.0",
