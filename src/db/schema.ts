@@ -4,5 +4,6 @@ export const notifyTable = pgTable('notify', {
   id: integer().primaryKey().generatedAlwaysAsIdentity(),
   createdAt: timestamp('created_at').notNull().defaultNow(),
   email: varchar({ length: 255 }).notNull().unique(),
+  userType: varchar({ length: 50 }).notNull(),
   notifiedAt: timestamp('notified_at'),
 })

@@ -2,13 +2,17 @@
 
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
+import { Label } from '@/components/ui/label'
+import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group'
 import { addToNotifyList } from '@/features/soon/actions/action-add-to-notify-list'
+import { NotifyUserType } from '@/features/soon/types'
 import { useAction } from 'next-safe-action/hooks'
 import { useRef, useState } from 'react'
 import ReCAPTCHA from 'react-google-recaptcha'
 
 export function NotifyMeForm() {
   const [email, setEmail] = useState('')
+  const [userType, setUserType] = useState<NotifyUserType | null>(null)
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [message, setMessage] = useState('')
   const recaptchaRef = useRef<ReCAPTCHA>(null)
@@ -63,7 +67,7 @@ export function NotifyMeForm() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    execute({ email })
+    execute({ email, userType })
   }
 
   return (
@@ -79,9 +83,19 @@ export function NotifyMeForm() {
         onChange={(e) => setEmail(e.target.value)}
         className="w-full"
       />
-      <Button type="submit" disabled={isSubmitting || !isVerified}>
-        {isSubmitting ? 'Submitting...' : 'Notify Me'}
-      </Button>
+      <RadioGroup
+        defaultValue={userType ?? ''}
+        onValueChange={(v) => setUserType(v as NotifyUserType)}
+      >
+        <div className="flex items-center gap-4">
+          <RadioGroupItem value="developer" id="option-one" />
+          <Label htmlFor="option-one">Developer</Label>
+        </div>
+        <div className="flex items-center gap-4">
+          <RadioGroupItem value="employer" id="option-two" />
+          <Label htmlFor="option-two">Employer</Label>
+        </div>
+      </RadioGroup>
       <ReCAPTCHA
         sitekey={process.env.NEXT_PUBLIC_RECAPTCHA_SITE_KEY || ''}
         ref={recaptchaRef}
@@ -92,6 +106,12 @@ export function NotifyMeForm() {
           setIsVerified(false)
         }}
       />
+      <Button
+        type="submit"
+        disabled={isSubmitting || !isVerified || userType === null}
+      >
+        {isSubmitting ? 'Submitting...' : 'Notify Me'}
+      </Button>{' '}
       {message && (
         <p
           className={
