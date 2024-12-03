@@ -4,6 +4,17 @@ export const notifyTable = pgTable('notify', {
   id: integer().primaryKey().generatedAlwaysAsIdentity(),
   createdAt: timestamp('created_at').notNull().defaultNow(),
   email: varchar({ length: 255 }).notNull().unique(),
-  userType: varchar({ length: 50 }).notNull(),
+  userType: varchar('user_type', { length: 50 }).notNull(),
   notifiedAt: timestamp('notified_at'),
+  emailId: varchar('email_id', { length: 255 }),
+})
+
+export const emailLogTable = pgTable('email_log', {
+  id: integer().primaryKey().generatedAlwaysAsIdentity(),
+  emailId: varchar('email_id', { length: 255 }).notNull(),
+  sentAt: timestamp('sent_at'),
+  deliveredAt: timestamp('delivered_at'),
+  deliveryDelayedAt: timestamp('delivery_delayed_at'),
+  bouncedAt: timestamp('bounced_at'),
+  complainedAt: timestamp('complained_at'),
 })
