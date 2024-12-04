@@ -11,9 +11,10 @@ export const notifyTable = pgTable('notify', {
 
 export const emailLogTable = pgTable('email_log', {
   id: integer().primaryKey().generatedAlwaysAsIdentity(),
-  emailId: varchar('email_id', { length: 255 }).notNull(),
+  emailId: varchar('email_id', { length: 255 }).notNull().unique(),
   sentAt: timestamp('sent_at'),
   deliveredAt: timestamp('delivered_at'),
+  clickedAt: timestamp('clicked_at'),
   deliveryDelayedAt: timestamp('delivery_delayed_at'),
   bouncedAt: timestamp('bounced_at'),
   complainedAt: timestamp('complained_at'),
