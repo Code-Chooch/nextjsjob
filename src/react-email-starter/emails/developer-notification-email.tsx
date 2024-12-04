@@ -14,13 +14,12 @@ import {
 } from '@react-email/components'
 import * as React from 'react'
 
-interface SeekerNotificationEmailProps {
-  userFirstName: string
+interface DeveloperNotificationEmailProps {
   url: string
 }
 
-export const SeekerNotificationEmail: React.FC<
-  SeekerNotificationEmailProps
+export const DeveloperNotificationEmail: React.FC<
+  DeveloperNotificationEmailProps
 > = ({ url = 'https://www.nextjsjob.com' }) => {
   const currentYear = new Date().getFullYear()
 
@@ -79,4 +78,4 @@ export const SeekerNotificationEmail: React.FC<
   )
 }
 
-export default SeekerNotificationEmail
+export default DeveloperNotificationEmail

@@ -15,13 +15,12 @@ import {
 import * as React from 'react'
 
 interface EmployerNotificationEmailProps {
-  userFirstName: string
   url: string
 }
 
 export const EmployerNotificationEmail: React.FC<
   EmployerNotificationEmailProps
-> = ({ userFirstName = 'there', url = 'https://www.nextjsjob.com' }) => {
+> = ({ url = 'https://www.nextjsjob.com' }) => {
   const currentYear = new Date().getFullYear()
 
   return (
@@ -45,9 +44,7 @@ export const EmployerNotificationEmail: React.FC<
             <Heading className="text-3xl font-bold text-center text-black mb-6">
               The NextJS Job Board is now live!
             </Heading>
-            <Text className="text-lg text-[#191919] mb-4">
-              Hello {userFirstName},
-            </Text>
+            <Text className="text-lg text-[#191919] mb-4">Hello there,</Text>
             <Text className="text-lg text-[#191919} mb-4">
               {`Great news! We are now live and ready for action. As someone who signed up to be notified, you're among the first to know.`}
             </Text>
