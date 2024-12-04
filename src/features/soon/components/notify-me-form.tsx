@@ -67,6 +67,12 @@ export function NotifyMeForm() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
+
+    if (userType === null) {
+      setMessage('You must select a user type.')
+      return
+    }
+
     execute({ email, userType })
   }
 
