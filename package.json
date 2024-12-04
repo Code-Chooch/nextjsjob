@@ -30,6 +30,7 @@
     "@radix-ui/react-tabs": "^1.1.1",
     "@radix-ui/react-toast": "^1.2.2",
     "@radix-ui/react-tooltip": "^1.1.4",
+    "@react-email/components": "^0.0.29",
     "@tanstack/react-table": "^8.20.5",
     "@tanstack/table-core": "^8.20.5",
     "@types/react-google-recaptcha": "^2.1.9",
@@ -69,6 +70,7 @@
     "git-format-staged": "^3.1.1",
     "postcss": "^8",
     "prettier": "3.3.3",
+    "react-email": "^3.0.3",
     "tailwindcss": "^3.4.1",
     "tsx": "^4.19.2",
     "typescript": "^5"
