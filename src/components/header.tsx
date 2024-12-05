@@ -1,7 +1,9 @@
 'use client'
 
 import { ThemeToggle } from '@/components/theme-toggle'
+import { UserButton } from '@clerk/nextjs'
 import { useEffect, useState } from 'react'
+import { SignedIn } from '@clerk/nextjs'
 
 export function Header() {
   const [text, setText] = useState('')
@@ -55,7 +57,12 @@ export function Header() {
             ></span>
           </div>
         </div>
-        <ThemeToggle />
+        <div className="flex gap-4">
+          <SignedIn>
+            <UserButton />
+          </SignedIn>
+          <ThemeToggle />
+        </div>
       </div>
     </header>
   )
