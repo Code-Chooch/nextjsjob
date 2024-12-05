@@ -8,7 +8,7 @@ import { NotifyUserType } from '../types'
 import { resend } from '@/lib/resend'
 import EmployerNotificationEmail from '@/react-email-starter/emails/employer-notification-email'
 import DeveloperNotificationEmail from '@/react-email-starter/emails/developer-notification-email'
-import { eq } from 'drizzle-orm'
+import { eq, sql } from 'drizzle-orm'
 import { revalidatePath } from 'next/cache'
 
 const schema = z.object({
@@ -27,15 +27,18 @@ export const sendNotifyLiveEmails = authedActionClient
         id: notifyTable.id,
         email: notifyTable.email,
         userType: notifyTable.userType,
+        notifiedAt: notifyTable.notifiedAt,
       })
       .from(notifyTable)
 
     const employers = notifyList.filter(
-      (u) => (u.userType as NotifyUserType) === 'employer'
+      (u) =>
+        (u.userType as NotifyUserType) === 'employer' && u.notifiedAt === null
     )
 
     const developers = notifyList.filter(
-      (u) => (u.userType as NotifyUserType) === 'developer'
+      (u) =>
+        (u.userType as NotifyUserType) === 'developer' && u.notifiedAt === null
     )
 
     if (employers.length > 0) {
@@ -58,7 +61,7 @@ export const sendNotifyLiveEmails = authedActionClient
           // store email id in notify table
           await db
             .update(notifyTable)
-            .set({ emailId: data?.id })
+            .set({ emailId: data?.id, notifiedAt: sql`NOW()` })
             .where(eq(notifyTable.id, employer.id))
         }
       } catch (error) {
@@ -87,7 +90,7 @@ export const sendNotifyLiveEmails = authedActionClient
           // store email id in notify table
           await db
             .update(notifyTable)
-            .set({ emailId: data?.id })
+            .set({ emailId: data?.id, notifiedAt: sql`NOW()` })
             .where(eq(notifyTable.id, developer.id))
         }
       } catch (error) {
