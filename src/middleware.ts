@@ -20,7 +20,11 @@ const isPublicRoute = createRouteMatcher([
 export default clerkMiddleware(async (auth, request) => {
   // get feature flag and redirect if enabled and no the soon page
   const goToSoon = await redirectAllPagesToComingSoon()
-  if (goToSoon && !request.nextUrl.pathname.startsWith('/soon')) {
+  if (
+    goToSoon &&
+    !request.nextUrl.pathname.startsWith('/soon') &&
+    !request.nextUrl.pathname.startsWith('/api')
+  ) {
     return NextResponse.rewrite(new URL('/soon', request.url))
   }
 
