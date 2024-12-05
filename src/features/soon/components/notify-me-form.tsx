@@ -1,6 +1,7 @@
 'use client'
 
 import { Button } from '@/components/ui/button'
+import { ErrorDialog } from '@/components/ui/error-dialog'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group'
@@ -15,6 +16,9 @@ export function NotifyMeForm() {
   const [userType, setUserType] = useState<NotifyUserType | null>(null)
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [message, setMessage] = useState('')
+  const [showError, setShowError] = useState(false)
+  const errorDesc = useRef('')
+  const errorTitle = useRef('')
   const recaptchaRef = useRef<ReCAPTCHA>(null)
   const [isVerified, setIsVerified] = useState(false)
 
@@ -59,9 +63,15 @@ export function NotifyMeForm() {
       setIsSubmitting(true)
     },
     onSettled: ({ result }) => {
-      const { message } = result?.data || {}
+      const { success, message } = result?.data || {}
       setIsSubmitting(false)
-      setMessage(message || '')
+      if (success) {
+        setMessage(message || '')
+      } else {
+        setShowError(true)
+        errorDesc.current = message || ''
+        errorTitle.current = 'Unable to Add to Notification List'
+      }
     },
   })
 
@@ -81,6 +91,14 @@ export function NotifyMeForm() {
       onSubmit={handleSubmit}
       className="w-[100dvw] max-w-md flex flex-col gap-4 items-center"
     >
+      {showError && (
+        <ErrorDialog
+          title={errorTitle.current}
+          description={errorDesc.current}
+          open={showError}
+          onClose={() => setShowError(false)}
+        />
+      )}
       <Input
         type="email"
         placeholder="Enter your email"
