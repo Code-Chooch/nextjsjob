@@ -2,22 +2,25 @@
 
 import { db } from '@/db/db'
 import { notifyTable } from '@/db/schema'
-import { unauthedActionClient } from '@/lib/safe-action'
+import { authedActionClient } from '@/lib/safe-action'
 import { z } from 'zod'
 import { NotifyUserType } from '../types'
 import { resend } from '@/lib/resend'
 import EmployerNotificationEmail from '@/react-email-starter/emails/employer-notification-email'
 import DeveloperNotificationEmail from '@/react-email-starter/emails/developer-notification-email'
 import { eq } from 'drizzle-orm'
+import { revalidatePath } from 'next/cache'
 
-const schema = z.object({})
+const schema = z.object({
+  revalidationPath: z.string(),
+})
 
-export const addToNotifyList = unauthedActionClient
+export const sendNotifyLiveEmails = authedActionClient
   .metadata({
     actionName: 'addToNotifyList',
   })
   .schema(schema)
-  .action(async () => {
+  .action(async ({ parsedInput: { revalidationPath } }) => {
     // Get notify list
     const notifyList = await db
       .select({
@@ -94,8 +97,10 @@ export const addToNotifyList = unauthedActionClient
     }
 
     if (developers.length === 0 && employers.length === 0) {
-      return { success: true, message: 'No developers or employers to email.' }
+      return { success: false, message: 'No developers or employers to email.' }
     }
+
+    revalidatePath(revalidationPath)
 
     return {
       success: true,

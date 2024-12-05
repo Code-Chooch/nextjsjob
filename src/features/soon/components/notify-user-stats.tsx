@@ -1,53 +1,83 @@
 'use client'
 
-import { useState } from 'react'
+import { useRef, useState } from 'react'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { sendNotifyLiveEmails } from '@/features/soon/actions/action-send-notify-live-emails'
+import { useAction } from 'next-safe-action/hooks'
+import { usePathname } from 'next/navigation'
+import { ErrorDialog } from '@/components/ui/error-dialog'
 
 interface UserStatsProps {
   stats: {
-    employers: number
-    developers: number
+    employersNotNotified: number
+    employersNotified: number
+    developersNotNotified: number
+    developersNotified: number
   }
 }
 
 export function NotifyUserStats({ stats }: UserStatsProps) {
   const [isLoading, setIsLoading] = useState(false)
+  const [showError, setShowError] = useState(false)
+  const revalidationPath = usePathname()
+  const errorDesc = useRef('')
+  const errorTitle = useRef('')
+
+  const { execute } = useAction(sendNotifyLiveEmails, {
+    onExecute: () => {
+      setIsLoading(true)
+    },
+    onSettled: ({ result }) => {
+      setIsLoading(false)
+      const { data } = result
+      if (data === undefined || data.success === false) {
+        errorDesc.current = data!.message
+        errorTitle.current = 'Error Sending Launch Notification Emails'
+        setShowError(true)
+      }
+    },
+  })
 
   const handleSendEmails = async () => {
-    setIsLoading(true)
-    try {
-    } catch (error) {
-      const err = error as Error
-      console.error(err.message)
-    } finally {
-      setIsLoading(false)
-    }
+    execute({ revalidationPath })
   }
 
   return (
-    <div className="space-y-6">
-      <div className="grid gap-4 md:grid-cols-2">
+    <div className="gap-4 flex flex-col">
+      {showError && (
+        <ErrorDialog
+          open={showError}
+          title={errorTitle.current}
+          description={errorDesc.current}
+          onClose={() => setShowError(false)}
+        />
+      )}
+      <div className="gap-4 flex flex-col">
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Employers</CardTitle>
+            <CardTitle>Employers</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{stats.employers}</div>
+            <div className="text-2xl font-bold">
+              {`${stats.employersNotified}/${stats.developersNotNotified}`}
+            </div>
           </CardContent>
         </Card>
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Developers</CardTitle>
+            <CardTitle>Developers</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{stats.developers}</div>
+            <div className="text-2xl font-bold">
+              {`${stats.developersNotified}/${stats.developersNotNotified}`}
+            </div>
           </CardContent>
         </Card>
       </div>
       <div className="flex justify-center">
         <Button onClick={handleSendEmails} disabled={isLoading}>
-          {isLoading ? 'Sending...' : 'Send Launch Emails to All Users'}
+          {isLoading ? 'Sending...' : 'Send Unsent Launch Emails'}
         </Button>
       </div>
     </div>
