@@ -7,6 +7,7 @@ import { sendNotifyLiveEmails } from '@/features/soon/actions/action-send-notify
 import { useAction } from 'next-safe-action/hooks'
 import { usePathname } from 'next/navigation'
 import { ErrorDialog } from '@/components/ui/error-dialog'
+import { useToast } from '@/hooks/use-toast'
 
 interface UserStatsProps {
   stats: {
@@ -21,6 +22,7 @@ export function NotifyUserStats({ stats }: UserStatsProps) {
   const [isLoading, setIsLoading] = useState(false)
   const [showError, setShowError] = useState(false)
   const revalidationPath = usePathname()
+  const { toast } = useToast()
   const errorDesc = useRef('')
   const errorTitle = useRef('')
 
@@ -31,6 +33,9 @@ export function NotifyUserStats({ stats }: UserStatsProps) {
     onSettled: ({ result }) => {
       setIsLoading(false)
       const { data } = result
+      if (data?.success) {
+        toast({ title: 'Success', description: data?.message })
+      }
       if (data === undefined || data.success === false) {
         errorDesc.current = data!.message
         errorTitle.current = 'Error Sending Launch Notification Emails'

@@ -7,6 +7,7 @@ import { Label } from '@/components/ui/label'
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group'
 import { addToNotifyList } from '@/features/soon/actions/action-add-to-notify-list'
 import { NotifyUserType } from '@/features/soon/types'
+import { useToast } from '@/hooks/use-toast'
 import { useAction } from 'next-safe-action/hooks'
 import { useRef, useState } from 'react'
 import ReCAPTCHA from 'react-google-recaptcha'
@@ -21,6 +22,7 @@ export function NotifyMeForm() {
   const errorTitle = useRef('')
   const recaptchaRef = useRef<ReCAPTCHA>(null)
   const [isVerified, setIsVerified] = useState(false)
+  const { toast } = useToast()
 
   const handleCaptchaSubmission = async (token: string | null) => {
     try {
@@ -63,10 +65,11 @@ export function NotifyMeForm() {
       setIsSubmitting(true)
     },
     onSettled: ({ result }) => {
-      const { success, message } = result?.data || {}
+      const { success, message: msg } = result?.data || {}
       setIsSubmitting(false)
       if (success) {
-        setMessage(message || '')
+        setMessage(msg || '')
+        toast({ title: 'Success', description: msg })
       } else {
         setShowError(true)
         errorDesc.current = message || ''
