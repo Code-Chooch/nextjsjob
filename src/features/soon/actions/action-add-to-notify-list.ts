@@ -28,7 +28,7 @@ export const addToNotifyList = unauthedActionClient
     if (existingEmail.length > 0) {
       return {
         success: false,
-        message: 'The email you entered is already in the notify list.',
+        message: 'The email you entered is already on the notify list.',
       }
     }
 
