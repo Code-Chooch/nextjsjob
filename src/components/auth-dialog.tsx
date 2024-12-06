@@ -92,11 +92,25 @@ export function AuthDialog() {
             description: 'Your account has been created successfully.',
           })
         } else if (result.status === 'missing_requirements') {
-          // Handle missing requirements (e.g., email verification needed)
-          console.log('Missing requirements:', result.missingFields)
-          setFormMessage(
-            'Please check your email to complete the sign-up process.'
-          )
+          console.log('Verification status:', result.status)
+          console.log('Missing fields:', result.missingFields)
+
+          const verificationAttempt =
+            await signUp.prepareEmailAddressVerification()
+          console.log('Verification attempt:', verificationAttempt)
+
+          if (verificationAttempt.status === 'missing_requirements') {
+            toast({
+              title: 'Verification Required',
+              description:
+                'Please check your email and click the verification link to complete sign up.',
+            })
+            setFormMessage(
+              'Verification email sent! Please check your inbox and spam folder.'
+            )
+            // Optionally disable the form or show a different view while waiting
+            setIsLoading(false)
+          }
         } else {
           console.error('Unexpected result status', result)
           throw new Error('Unexpected result status: ' + result.status)
