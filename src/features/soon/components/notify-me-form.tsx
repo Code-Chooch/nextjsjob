@@ -71,9 +71,9 @@ export function NotifyMeForm() {
         setMessage(msg || '')
         toast({ title: 'Success', description: msg })
       } else {
-        setShowError(true)
         errorDesc.current = message || ''
         errorTitle.current = 'Unable to Add to Notification List'
+        setShowError(true)
       }
     },
   })
