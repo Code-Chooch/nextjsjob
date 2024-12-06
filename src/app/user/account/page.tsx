@@ -1,3 +1,3 @@
 export default function Page() {
-  ;<h1>User Account Page</h1>
+  return <h1>User Account Page</h1>
 }

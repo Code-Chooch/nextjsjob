@@ -1,9 +1,10 @@
 'use client'
 
 import { ThemeToggle } from '@/components/theme-toggle'
-import { UserButton } from '@clerk/nextjs'
+import { SignedOut, UserButton } from '@clerk/nextjs'
 import { useEffect, useState } from 'react'
 import { SignedIn } from '@clerk/nextjs'
+import { AuthDialog } from '@/components/auth-dialog'
 
 export function Header() {
   const [text, setText] = useState('')
@@ -56,6 +57,11 @@ export function Header() {
               aria-hidden="true"
             ></span>
           </div>
+        </div>
+        <div className="flex gap-4">
+          <SignedOut>
+            <AuthDialog />
+          </SignedOut>
         </div>
         <div className="flex gap-4">
           <SignedIn>

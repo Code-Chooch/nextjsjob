@@ -1,5 +1,4 @@
-import { auth } from '@clerk/nextjs/server'
-import { clerkClient } from '@clerk/nextjs/server'
+import { auth, clerkClient } from '@clerk/nextjs/server'
 
 export async function isUserAdmin() {
   const { userId } = await auth()
