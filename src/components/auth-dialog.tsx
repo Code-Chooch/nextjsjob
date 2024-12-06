@@ -36,6 +36,8 @@ export function AuthDialog() {
   const [resetCode, setResetCode] = useState('')
   const [newPassword, setNewPassword] = useState('')
   const [isSignUp, setIsSignUp] = useState(false)
+  const [verificationCode, setVerificationCode] = useState('')
+  const [showVerificationInput, setShowVerificationInput] = useState(false)
   const router = useRouter()
   const pathName = usePathname()
   const clerk = useClerk()
@@ -67,6 +69,8 @@ export function AuthDialog() {
     setResetCode('')
     setNewPassword('')
     setIsSignUp(false)
+    setVerificationCode('')
+    setShowVerificationInput(false)
   }
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -95,22 +99,11 @@ export function AuthDialog() {
           console.log('Verification status:', result.status)
           console.log('Missing fields:', result.missingFields)
 
-          const verificationAttempt =
-            await signUp.prepareEmailAddressVerification()
-          console.log('Verification attempt:', verificationAttempt)
-
-          if (verificationAttempt.status === 'missing_requirements') {
-            toast({
-              title: 'Verification Required',
-              description:
-                'Please check your email and click the verification link to complete sign up.',
-            })
-            setFormMessage(
-              'Verification email sent! Please check your inbox and spam folder.'
-            )
-            // Optionally disable the form or show a different view while waiting
-            setIsLoading(false)
-          }
+          setShowVerificationInput(true)
+          setFormMessage(
+            'Please enter the verification code sent to your email.'
+          )
+          setIsLoading(false)
         } else {
           console.error('Unexpected result status', result)
           throw new Error('Unexpected result status: ' + result.status)
@@ -138,6 +131,37 @@ export function AuthDialog() {
       ) {
         console.log('PAT challenge error detected. Clerk state:', clerk)
       }
+      errorTitle.current = `Error ${isSignUp ? 'Signing Up' : 'Signing In'}`
+      errorDesc.current = err.message
+      setIsError(true)
+    } finally {
+      setIsLoading(false)
+    }
+  }
+
+  const handleVerificationSubmit = async (e: React.FormEvent) => {
+    e.preventDefault()
+    setIsLoading(true)
+
+    try {
+      const result = await signUp.attemptEmailAddressVerification({
+        code: verificationCode,
+      })
+
+      if (result.status === 'complete') {
+        await clerk.setActive({ session: result.createdSessionId })
+        setOpen(false)
+        router.push(pathName)
+        toast({
+          title: 'Account Verified',
+          description: 'Your account has been verified successfully.',
+        })
+      } else {
+        throw new Error('Verification failed')
+      }
+    } catch (error) {
+      const err = error as Error
+      console.error('Error during verification:', err)
       errorTitle.current = `Error ${isSignUp ? 'Signing Up' : 'Signing In'}`
       errorDesc.current = err.message
       setIsError(true)
@@ -260,12 +284,14 @@ export function AuthDialog() {
           <DialogTitle className="text-2xl font-semibold text-center">
             {resetStep === 'initial'
               ? isSignUp
-                ? 'Create an account'
+                ? showVerificationInput
+                  ? 'Verify Your Email'
+                  : 'Create an account'
                 : 'Sign in to your account'
               : 'Reset your password'}
           </DialogTitle>
         </DialogHeader>
-        {resetStep === 'initial' && (
+        {resetStep === 'initial' && !showVerificationInput && (
           <>
             <form onSubmit={handleSubmit} className="grid gap-4 py-4">
               <div className="grid gap-2">
@@ -355,6 +381,34 @@ export function AuthDialog() {
               </Button>
             </div>
           </>
+        )}
+        {resetStep === 'initial' && showVerificationInput && (
+          <form onSubmit={handleVerificationSubmit} className="grid gap-4 py-4">
+            <div className="grid gap-2">
+              <Label htmlFor="verificationCode">Verification Code</Label>
+              <Input
+                id="verificationCode"
+                type="text"
+                value={verificationCode}
+                onChange={(e) => setVerificationCode(e.target.value)}
+                required
+                disabled={isLoading}
+              />
+            </div>
+            <Button type="submit" disabled={isLoading}>
+              {isLoading ? (
+                <>
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  Verifying...
+                </>
+              ) : (
+                'Verify Email'
+              )}
+            </Button>
+            {formMessage && (
+              <p className="text-red-500 text-sm">{formMessage}</p>
+            )}
+          </form>
         )}
         {resetStep === 'reset' && (
           <form onSubmit={handleResetPassword} className="grid gap-4 py-4">
