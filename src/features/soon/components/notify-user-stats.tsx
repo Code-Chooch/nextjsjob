@@ -30,17 +30,30 @@ export function NotifyUserStats({ stats }: UserStatsProps) {
     onExecute: () => {
       setIsLoading(true)
     },
-    onSettled: ({ result }) => {
-      setIsLoading(false)
-      const { data } = result
-      if (data?.success) {
-        toast({ title: 'Success', description: data?.message })
-      }
-      if (data === undefined || data.success === false) {
-        errorDesc.current = data!.message
-        errorTitle.current = 'Error Sending Launch Notification Emails'
+    onSuccess: ({ data }) => {
+      toast({
+        title: 'Success',
+        description: `Sent ${data?.emailsSent || 0} notification emails!`,
+      })
+    },
+    onError: ({ error }) => {
+      const { serverError, validationErrors } = error
+      if (validationErrors || serverError) {
+        if (validationErrors) {
+          errorDesc.current =
+            'Schema validation failed due to invalid safe action input.'
+        }
+        if (serverError) {
+          errorDesc.current =
+            serverError ??
+            'An unexpected sever error occurred. Please refresh and try again'
+        }
+        errorTitle.current = 'Unable to Send Notfication Emails'
         setShowError(true)
       }
+    },
+    onSettled: () => {
+      setIsLoading(false)
     },
   })
 

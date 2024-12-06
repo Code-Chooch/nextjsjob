@@ -64,15 +64,28 @@ export function NotifyMeForm() {
       setMessage('')
       setIsSubmitting(true)
     },
-    onSettled: ({ result }) => {
-      const { success, message: msg } = result?.data || {}
+    onSettled: () => {
       setIsSubmitting(false)
-      if (success) {
-        setMessage(msg || '')
-        toast({ title: 'Success', description: msg })
-      } else {
-        errorDesc.current = message || ''
-        errorTitle.current = 'Unable to Add to Notification List'
+    },
+    onSuccess: () => {
+      toast({
+        title: 'Success',
+        description: 'You have been added to the notify list!',
+      })
+    },
+    onError: ({ error }) => {
+      const { serverError, validationErrors } = error
+      if (validationErrors || serverError) {
+        if (validationErrors) {
+          errorDesc.current =
+            'Schema validation failed due to invalid safe action input.'
+        }
+        if (serverError) {
+          errorDesc.current =
+            serverError ??
+            'An unexpected sever error occurred. Please refresh and try again'
+        }
+        errorTitle.current = 'Unable to Complete Action'
         setShowError(true)
       }
     },

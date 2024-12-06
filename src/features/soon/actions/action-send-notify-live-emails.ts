@@ -2,14 +2,15 @@
 
 import { db } from '@/db/db'
 import { notifyTable } from '@/db/schema'
-import { authedActionClient } from '@/lib/safe-action'
+import { authedActionClient, SafeActionError } from '@/lib/safe-action'
 import { z } from 'zod'
 import { NotifyUserType } from '../types'
 import { resend } from '@/lib/resend'
 import EmployerNotificationEmail from '@/react-email-starter/emails/employer-notification-email'
 import DeveloperNotificationEmail from '@/react-email-starter/emails/developer-notification-email'
-import { eq, sql } from 'drizzle-orm'
+import { eq, isNull, sql } from 'drizzle-orm'
 import { revalidatePath } from 'next/cache'
+import { flattenValidationErrors } from 'next-safe-action'
 
 const schema = z.object({
   revalidationPath: z.string(),
@@ -19,7 +20,10 @@ export const sendNotifyLiveEmails = authedActionClient
   .metadata({
     actionName: 'addToNotifyList',
   })
-  .schema(schema)
+  .schema(schema, {
+    handleValidationErrorsShape: (ve) =>
+      flattenValidationErrors(ve).fieldErrors,
+  })
   .action(async ({ parsedInput: { revalidationPath } }) => {
     // Get notify list
     const notifyList = await db
@@ -30,6 +34,7 @@ export const sendNotifyLiveEmails = authedActionClient
         notifiedAt: notifyTable.notifiedAt,
       })
       .from(notifyTable)
+      .where(isNull(notifyTable.notifiedAt))
 
     const employers = notifyList.filter(
       (u) =>
@@ -55,7 +60,7 @@ export const sendNotifyLiveEmails = authedActionClient
 
           if (error) {
             const err = error as Error
-            return { success: false, message: err.message }
+            throw new SafeActionError(err.message)
           }
 
           // store email id in notify table
@@ -66,7 +71,7 @@ export const sendNotifyLiveEmails = authedActionClient
         }
       } catch (error) {
         const err = error as Error
-        return { success: false, message: err.message }
+        throw new SafeActionError(err.message)
       }
     }
 
@@ -84,7 +89,7 @@ export const sendNotifyLiveEmails = authedActionClient
 
           if (error) {
             const err = error as Error
-            return { success: false, message: err.message }
+            throw new SafeActionError(err.message)
           }
 
           // store email id in notify table
@@ -95,18 +100,15 @@ export const sendNotifyLiveEmails = authedActionClient
         }
       } catch (error) {
         const err = error as Error
-        return { success: false, message: err.message }
+        throw new SafeActionError(err.message)
       }
     }
 
     if (developers.length === 0 && employers.length === 0) {
-      return { success: false, message: 'No developers or employers to email.' }
+      throw new SafeActionError('No developers or employers to email.')
     }
 
     revalidatePath(revalidationPath)
 
-    return {
-      success: true,
-      message: `Emails sent to ${notifyList.length} users!`,
-    }
+    return { emailsSent: notifyList.length }
   })

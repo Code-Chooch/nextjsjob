@@ -2,8 +2,9 @@
 
 import { db } from '@/db/db'
 import { notifyTable } from '@/db/schema'
-import { unauthedActionClient } from '@/lib/safe-action'
+import { SafeActionError, unauthedActionClient } from '@/lib/safe-action'
 import { eq, and } from 'drizzle-orm'
+import { flattenValidationErrors } from 'next-safe-action'
 import { z } from 'zod'
 
 const schema = z.object({
@@ -15,7 +16,10 @@ export const addToNotifyList = unauthedActionClient
   .metadata({
     actionName: 'addToNotifyList',
   })
-  .schema(schema)
+  .schema(schema, {
+    handleValidationErrorsShape: (ve) =>
+      flattenValidationErrors(ve).fieldErrors,
+  })
   .action(async ({ parsedInput: { email, userType } }) => {
     // Check if email is already in the database
     const existingEmail = await db
@@ -26,14 +30,11 @@ export const addToNotifyList = unauthedActionClient
       )
 
     if (existingEmail.length > 0) {
-      return {
-        success: false,
-        message: 'The email you entered is already on the notify list.',
-      }
+      throw new SafeActionError(
+        'The email you entered is already on the notify list.'
+      )
     }
 
     // Add email to notify list
     await db.insert(notifyTable).values({ email, userType })
-
-    return { success: true, message: 'You have been added to the notify list!' }
   })

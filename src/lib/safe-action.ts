@@ -1,11 +1,13 @@
 import { auth } from '@clerk/nextjs/server'
-import { createSafeActionClient } from 'next-safe-action'
+import {
+  createSafeActionClient,
+  DEFAULT_SERVER_ERROR_MESSAGE,
+} from 'next-safe-action'
 import z from 'zod'
 
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
 class SafeActionError extends Error {}
 
-export const unauthedActionClient = createSafeActionClient({
+const unauthedActionClient = createSafeActionClient({
   defineMetadataSchema() {
     return z.object({
       actionName: z.string(),
@@ -16,8 +18,14 @@ export const unauthedActionClient = createSafeActionClient({
     // Log to console.
     console.error('Action error:', e.message)
 
-    // Rethrow all server errors:
-    throw e
+    // In this case, we can use the 'SafeActionError` class to unmask errors
+    // and return them with their actual messages to the client.
+    if (e instanceof SafeActionError) {
+      return e.message
+    }
+
+    // Every other error that occurs will be masked with the default message.
+    return DEFAULT_SERVER_ERROR_MESSAGE
   },
 }).use(async ({ next, clientInput, metadata }) => {
   // Enable action logging in non-production.
@@ -42,7 +50,7 @@ export const unauthedActionClient = createSafeActionClient({
   return await next()
 })
 
-export const authedActionClient = createSafeActionClient({
+const authedActionClient = createSafeActionClient({
   defineMetadataSchema() {
     return z.object({
       actionName: z.string(),
@@ -53,8 +61,14 @@ export const authedActionClient = createSafeActionClient({
     // Log to console.
     console.error('Action error:', e.message)
 
-    // Rethrow all server errors:
-    throw e
+    // In this case, we can use the 'SafeActionError` class to unmask errors
+    // and return them with their actual messages to the client.
+    if (e instanceof SafeActionError) {
+      return e.message
+    }
+
+    // Every other error that occurs will be masked with the default message.
+    return DEFAULT_SERVER_ERROR_MESSAGE
   },
 }).use(async ({ next, clientInput, metadata }) => {
   // get user auth data
@@ -62,7 +76,7 @@ export const authedActionClient = createSafeActionClient({
 
   // throw error if no user id
   if (!userId) {
-    throw new SafeActionError('User not authenticated.')
+    throw new Error('User not authenticated.')
   }
 
   // Enable action logging in non-production.
@@ -87,3 +101,5 @@ export const authedActionClient = createSafeActionClient({
 
   return await next({ ctx: { userId } })
 })
+
+export { unauthedActionClient, authedActionClient, SafeActionError }
