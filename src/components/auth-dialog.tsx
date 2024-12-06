@@ -43,6 +43,18 @@ export function AuthDialog() {
     return null
   }
 
+  const resetState = () => {
+    setEmail('')
+    setPassword('')
+    setFormMessage('')
+    setIsError(false)
+    setIsLoading(false)
+    setResetStep('initial')
+    setResetCode('')
+    setNewPassword('')
+    setIsSignUp(false)
+  }
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setFormMessage('')
@@ -65,7 +77,7 @@ export function AuthDialog() {
           })
         } else {
           console.error('Unexpected result status', result)
-          setFormMessage('An unexpected error occurred. Please try again.')
+          throw new Error('Unexpected result status: ' + result.status)
         }
       } else {
         const result = await signIn.create({
@@ -79,13 +91,13 @@ export function AuthDialog() {
           router.push(pathName)
         } else {
           console.error('Unexpected result status', result)
-          setFormMessage('An unexpected error occurred. Please try again.')
+          throw new Error('Unexpected result status: ' + result.status)
         }
       }
     } catch (error) {
       const err = error as Error
       console.error('Error during sign in/up:', err)
-      errorTitle.current = `Error ${isSignUp ? 'Signing Up' : 'Logging In'}`
+      errorTitle.current = `Error ${isSignUp ? 'Signing Up' : 'Signing In'}`
       errorDesc.current = err.message
       setIsError(true)
     } finally {
@@ -139,7 +151,7 @@ export function AuthDialog() {
         toast({
           title: 'Password Reset Successful',
           description:
-            'Your password has been reset and you are now logged in.',
+            'Your password has been reset and you are now signed in.',
         })
       } else {
         throw new Error('Unexpected result status')
@@ -175,7 +187,15 @@ export function AuthDialog() {
   }
 
   return (
-    <Dialog open={open} onOpenChange={setOpen}>
+    <Dialog
+      open={open}
+      onOpenChange={(newOpen) => {
+        setOpen(newOpen)
+        if (!newOpen) {
+          resetState()
+        }
+      }}
+    >
       {isError && (
         <ErrorDialog
           open={isError}
@@ -185,7 +205,7 @@ export function AuthDialog() {
         />
       )}
       <DialogTrigger asChild>
-        <Button variant="outline">Login</Button>
+        <Button variant="outline">Sign {isSignUp ? 'up' : 'in'}</Button>
       </DialogTrigger>
       <DialogContent className="sm:max-w-[425px]">
         <DialogHeader>
@@ -339,7 +359,7 @@ export function AuthDialog() {
               onClick={() => setResetStep('initial')}
               disabled={isLoading}
             >
-              Back to Login
+              Back to {isSignUp ? 'Sign Up' : 'Sign In'}
             </Button>
           </form>
         )}
