@@ -211,9 +211,9 @@ export function AuthDialog() {
         <DialogHeader>
           <div className="mx-auto">
             {theme === 'dark' ? (
-              <Icons.logoDark className="mx-auto w-auto" />
+              <Icons.logoDark priority={true} className="mx-auto w-auto" />
             ) : (
-              <Icons.logo className="mx-auto w-auto" />
+              <Icons.logo priority={true} className="mx-auto w-auto" />
             )}
           </div>
           <DialogTitle className="text-2xl font-semibold text-center">
