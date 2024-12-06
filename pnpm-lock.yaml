@@ -149,6 +149,9 @@ importers:
         specifier: ^3.23.8
         version: 3.23.8
     devDependencies:
+      '@clerk/types':
+        specifier: ^4.39.0
+        version: 4.39.0
       '@types/node':
         specifier: ^20
         version: 20.17.6
@@ -374,6 +377,13 @@ packages:
     resolution:
       {
         integrity: sha512-WrwFNJeiToDCCSxzPRbjRnI541lLSyBwtncrGCV4zVr8NhQeEVWlPdbEYzLvQbFu6qYT1ifbE5UR/krHNI79TA==,
+      }
+    engines: { node: '>=18.17.0' }
+
+  '@clerk/types@4.39.0':
+    resolution:
+      {
+        integrity: sha512-WWEoXmcob6X80cZZZGobN8aKjHAjAoL0cgVyLX8UeQ+JW4kl1IfUmZQgDBFOafGEm2yUoKlKAP22bWPDqmbTJw==,
       }
     engines: { node: '>=18.17.0' }
 
@@ -6704,6 +6714,10 @@ snapshots:
       react-dom: 19.0.0-rc-66855b96-20241106(react@19.0.0-rc-66855b96-20241106)
 
   '@clerk/types@4.36.0':
+    dependencies:
+      csstype: 3.1.1
+
+  '@clerk/types@4.39.0':
     dependencies:
       csstype: 3.1.1
 

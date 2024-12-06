@@ -14,7 +14,8 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Separator } from '@/components/ui/separator'
 import { toast } from '@/hooks/use-toast'
-import { useClerk, useSignIn, useSignUp } from '@clerk/nextjs'
+import { useSignIn, useSignUp } from '@clerk/nextjs'
+import { OAuthStrategy } from '@clerk/types'
 import { Loader2 } from 'lucide-react'
 import { useTheme } from 'next-themes'
 import { usePathname, useRouter } from 'next/navigation'
@@ -23,8 +24,16 @@ import { useEffect, useRef, useState } from 'react'
 export function AuthDialog() {
   const [open, setOpen] = useState(false)
   const { theme } = useTheme()
-  const { signIn, isLoaded: isSignInLoaded, setActive } = useSignIn()
-  const { signUp, isLoaded: isSignUpLoaded } = useSignUp()
+  const {
+    signIn,
+    isLoaded: isSignInLoaded,
+    setActive: setActiveSignIn,
+  } = useSignIn()
+  const {
+    signUp,
+    isLoaded: isSignUpLoaded,
+    setActive: setActiveSignUp,
+  } = useSignUp()
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [formMessage, setFormMessage] = useState('')
@@ -40,13 +49,6 @@ export function AuthDialog() {
   const [showVerificationInput, setShowVerificationInput] = useState(false)
   const router = useRouter()
   const pathName = usePathname()
-  const clerk = useClerk()
-
-  useEffect(() => {
-    if (!clerk.loaded) {
-      console.log('Clerk is not loaded yet')
-    }
-  }, [clerk.loaded])
 
   useEffect(() => {
     if (!process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY) {
@@ -80,34 +82,17 @@ export function AuthDialog() {
 
     try {
       if (isSignUp) {
-        console.log('Attempting to sign up with:', { email, password })
-        const result = await signUp.create({
+        await signUp.create({
           emailAddress: email,
           password,
         })
-        console.log('Sign up result:', result)
 
-        if (result.status === 'complete') {
-          await clerk.setActive({ session: result.createdSessionId })
-          setOpen(false)
-          router.push(pathName)
-          toast({
-            title: 'Account Created',
-            description: 'Your account has been created successfully.',
-          })
-        } else if (result.status === 'missing_requirements') {
-          console.log('Verification status:', result.status)
-          console.log('Missing fields:', result.missingFields)
+        // Send the user an email with the verification code
+        await signUp.prepareEmailAddressVerification({
+          strategy: 'email_code',
+        })
 
-          setShowVerificationInput(true)
-          setFormMessage(
-            'Please enter the verification code sent to your email.'
-          )
-          setIsLoading(false)
-        } else {
-          console.error('Unexpected result status', result)
-          throw new Error('Unexpected result status: ' + result.status)
-        }
+        setShowVerificationInput(true)
       } else {
         const result = await signIn.create({
           identifier: email,
@@ -115,7 +100,7 @@ export function AuthDialog() {
         })
 
         if (result.status === 'complete') {
-          await setActive({ session: result.createdSessionId })
+          await setActiveSignIn({ session: result.createdSessionId })
           setOpen(false)
           router.push(pathName)
         } else {
@@ -126,11 +111,6 @@ export function AuthDialog() {
     } catch (error) {
       const err = error as Error
       console.error('Error during sign in/up:', err)
-      if (
-        err.message.includes('Request for the Private Access Token Challenge')
-      ) {
-        console.log('PAT challenge error detected. Clerk state:', clerk)
-      }
       errorTitle.current = `Error ${isSignUp ? 'Signing Up' : 'Signing In'}`
       errorDesc.current = err.message
       setIsError(true)
@@ -149,7 +129,7 @@ export function AuthDialog() {
       })
 
       if (result.status === 'complete') {
-        await clerk.setActive({ session: result.createdSessionId })
+        await setActiveSignUp({ session: result.createdSessionId })
         setOpen(false)
         router.push(pathName)
         toast({
@@ -157,12 +137,16 @@ export function AuthDialog() {
           description: 'Your account has been verified successfully.',
         })
       } else {
+        // If the status is not complete, check why. User may need to
+        // complete further steps.
+        console.error(JSON.stringify(result, null, 2))
         throw new Error('Verification failed')
       }
     } catch (error) {
       const err = error as Error
       console.error('Error during verification:', err)
-      errorTitle.current = `Error ${isSignUp ? 'Signing Up' : 'Signing In'}`
+      console.error(JSON.stringify(error, null, 2))
+      errorTitle.current = 'Error Verifying Email'
       errorDesc.current = err.message
       setIsError(true)
     } finally {
@@ -209,7 +193,7 @@ export function AuthDialog() {
         password: newPassword,
       })
       if (result.status === 'complete') {
-        await setActive({ session: result.createdSessionId })
+        await setActiveSignIn({ session: result.createdSessionId })
         setResetStep('initial')
         setOpen(false)
         router.push(pathName)
@@ -232,13 +216,11 @@ export function AuthDialog() {
     }
   }
 
-  const handleOAuthSignIn = async (
-    provider: 'oauth_google' | 'oauth_apple' | 'oauth_github'
-  ) => {
+  const signInWith = async (strategy: OAuthStrategy) => {
     setFormMessage('')
     try {
       await signIn.authenticateWithRedirect({
-        strategy: provider,
+        strategy,
         redirectUrl: '/sso-callback',
         redirectUrlComplete: pathName,
       })
@@ -248,6 +230,50 @@ export function AuthDialog() {
       errorTitle.current = 'Error during OAuth Sign In'
       errorDesc.current = err.message
       setIsError(true)
+    }
+  }
+
+  async function handleOAuthSignIn(strategy: OAuthStrategy) {
+    if (!signIn || !signUp) return null
+
+    // If the user has an account in your application, but does not yet
+    // have an OAuth account connected to it, you can transfer the OAuth
+    // account to the existing user account.
+    const userExistsButNeedsToSignIn =
+      signUp.verifications.externalAccount.status === 'transferable' &&
+      signUp.verifications.externalAccount.error?.code ===
+        'external_account_exists'
+
+    if (userExistsButNeedsToSignIn) {
+      const res = await signIn.create({ transfer: true })
+
+      if (res.status === 'complete') {
+        await setActiveSignIn({
+          session: res.createdSessionId,
+        })
+      }
+    }
+
+    // If the user has an OAuth account but does not yet
+    // have an account in your app, you can create an account
+    // for them using the OAuth information.
+    const userNeedsToBeCreated =
+      signIn.firstFactorVerification.status === 'transferable'
+
+    if (userNeedsToBeCreated) {
+      const res = await signUp.create({
+        transfer: true,
+      })
+
+      if (res.status === 'complete') {
+        await setActiveSignUp({
+          session: res.createdSessionId,
+        })
+      }
+    } else {
+      // If the user has an account in your application
+      // and has an OAuth account connected to it, you can sign them in.
+      signInWith(strategy)
     }
   }
 
