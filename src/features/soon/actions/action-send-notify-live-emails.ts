@@ -10,7 +10,6 @@ import EmployerNotificationEmail from '@/react-email-starter/emails/employer-not
 import DeveloperNotificationEmail from '@/react-email-starter/emails/developer-notification-email'
 import { eq, isNull, sql } from 'drizzle-orm'
 import { revalidatePath } from 'next/cache'
-import { flattenValidationErrors } from 'next-safe-action'
 
 const schema = z.object({
   revalidationPath: z.string(),
@@ -20,10 +19,7 @@ export const sendNotifyLiveEmails = authedActionClient
   .metadata({
     actionName: 'addToNotifyList',
   })
-  .schema(schema, {
-    handleValidationErrorsShape: (ve) =>
-      flattenValidationErrors(ve).fieldErrors,
-  })
+  .schema(schema)
   .action(async ({ parsedInput: { revalidationPath } }) => {
     // Get notify list
     const notifyList = await db

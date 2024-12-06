@@ -4,7 +4,6 @@ import { db } from '@/db/db'
 import { notifyTable } from '@/db/schema'
 import { SafeActionError, unauthedActionClient } from '@/lib/safe-action'
 import { eq, and } from 'drizzle-orm'
-import { flattenValidationErrors } from 'next-safe-action'
 import { z } from 'zod'
 
 const schema = z.object({
@@ -16,10 +15,7 @@ export const addToNotifyList = unauthedActionClient
   .metadata({
     actionName: 'addToNotifyList',
   })
-  .schema(schema, {
-    handleValidationErrorsShape: (ve) =>
-      flattenValidationErrors(ve).fieldErrors,
-  })
+  .schema(schema)
   .action(async ({ parsedInput: { email, userType } }) => {
     // Check if email is already in the database
     const existingEmail = await db
