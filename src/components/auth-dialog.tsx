@@ -14,11 +14,11 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Separator } from '@/components/ui/separator'
 import { toast } from '@/hooks/use-toast'
-import { useSignIn, useSignUp } from '@clerk/nextjs'
+import { useClerk, useSignIn, useSignUp } from '@clerk/nextjs'
 import { Loader2 } from 'lucide-react'
 import { useTheme } from 'next-themes'
 import { usePathname, useRouter } from 'next/navigation'
-import { useRef, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 
 export function AuthDialog() {
   const [open, setOpen] = useState(false)
@@ -38,6 +38,20 @@ export function AuthDialog() {
   const [isSignUp, setIsSignUp] = useState(false)
   const router = useRouter()
   const pathName = usePathname()
+  const clerk = useClerk()
+
+  useEffect(() => {
+    if (!clerk.loaded) {
+      console.log('Clerk is not loaded yet')
+    }
+  }, [clerk.loaded])
+
+  useEffect(() => {
+    if (!process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY) {
+      console.error('Missing NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY')
+      setFormMessage('Authentication is currently unavailable.')
+    }
+  }, [])
 
   if (!isSignInLoaded || !isSignUpLoaded) {
     return null
@@ -62,19 +76,27 @@ export function AuthDialog() {
 
     try {
       if (isSignUp) {
+        console.log('Attempting to sign up with:', { email, password })
         const result = await signUp.create({
           emailAddress: email,
           password,
         })
+        console.log('Sign up result:', result)
 
         if (result.status === 'complete') {
-          await setActive({ session: result.createdSessionId })
+          await clerk.setActive({ session: result.createdSessionId })
           setOpen(false)
           router.push(pathName)
           toast({
             title: 'Account Created',
             description: 'Your account has been created successfully.',
           })
+        } else if (result.status === 'missing_requirements') {
+          // Handle missing requirements (e.g., email verification needed)
+          console.log('Missing requirements:', result.missingFields)
+          setFormMessage(
+            'Please check your email to complete the sign-up process.'
+          )
         } else {
           console.error('Unexpected result status', result)
           throw new Error('Unexpected result status: ' + result.status)
@@ -97,6 +119,11 @@ export function AuthDialog() {
     } catch (error) {
       const err = error as Error
       console.error('Error during sign in/up:', err)
+      if (
+        err.message.includes('Request for the Private Access Token Challenge')
+      ) {
+        console.log('PAT challenge error detected. Clerk state:', clerk)
+      }
       errorTitle.current = `Error ${isSignUp ? 'Signing Up' : 'Signing In'}`
       errorDesc.current = err.message
       setIsError(true)
@@ -363,7 +390,7 @@ export function AuthDialog() {
             </Button>
           </form>
         )}
-        <div id="clerk-captcha"></div>
+        <div id="clerk-captcha" />
       </DialogContent>
     </Dialog>
   )
