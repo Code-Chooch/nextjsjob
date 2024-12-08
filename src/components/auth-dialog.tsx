@@ -236,44 +236,39 @@ export function AuthDialog() {
   async function handleOAuthSignIn(strategy: OAuthStrategy) {
     if (!signIn || !signUp) return null
 
-    // If the user has an account in your application, but does not yet
-    // have an OAuth account connected to it, you can transfer the OAuth
-    // account to the existing user account.
-    const userExistsButNeedsToSignIn =
-      signUp.verifications.externalAccount.status === 'transferable' &&
-      signUp.verifications.externalAccount.error?.code ===
-        'external_account_exists'
-
-    if (userExistsButNeedsToSignIn) {
-      const res = await signIn.create({ transfer: true })
-
-      if (res.status === 'complete') {
-        await setActiveSignIn({
-          session: res.createdSessionId,
-        })
-      }
-    }
-
-    // If the user has an OAuth account but does not yet
-    // have an account in your app, you can create an account
-    // for them using the OAuth information.
-    const userNeedsToBeCreated =
-      signIn.firstFactorVerification.status === 'transferable'
-
-    if (userNeedsToBeCreated) {
-      const res = await signUp.create({
-        transfer: true,
+    try {
+      // First attempt to sign in
+      const signInResult = await signIn.create({
+        strategy,
+        redirectUrl: '/sso-callback',
+        actionCompleteRedirectUrl: pathName,
       })
 
-      if (res.status === 'complete') {
-        await setActiveSignUp({
-          session: res.createdSessionId,
+      // If the sign-in fails because the user doesn't exist, create a new account
+      if (signInResult.status === 'needs_first_factor') {
+        const signUpResult = await signUp.create({
+          transfer: true,
         })
+
+        if (signUpResult.status === 'complete') {
+          await setActiveSignUp({
+            session: signUpResult.createdSessionId,
+          })
+          router.push(pathName)
+        } else {
+          // Continue with OAuth flow if more steps are needed
+          await signInWith(strategy)
+        }
+      } else {
+        // Continue with OAuth flow for existing users
+        await signInWith(strategy)
       }
-    } else {
-      // If the user has an account in your application
-      // and has an OAuth account connected to it, you can sign them in.
-      signInWith(strategy)
+    } catch (error) {
+      const err = error as Error
+      console.error('Error during OAuth sign in:', err)
+      errorTitle.current = 'Error during OAuth Sign In'
+      errorDesc.current = err.message
+      setIsError(true)
     }
   }
 
