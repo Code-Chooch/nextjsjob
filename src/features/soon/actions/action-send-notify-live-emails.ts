@@ -2,14 +2,14 @@
 
 import { db } from '@/db/db'
 import { notifyTable } from '@/db/schema'
-import { authedActionClient, SafeActionError } from '@/lib/safe-action'
-import { z } from 'zod'
-import { NotifyUserType } from '../types'
 import { resend } from '@/lib/resend'
-import EmployerNotificationEmail from '@/react-email-starter/emails/employer-notification-email'
+import { authedActionClient, SafeActionError } from '@/lib/safe-action'
 import DeveloperNotificationEmail from '@/react-email-starter/emails/developer-notification-email'
+import EmployerNotificationEmail from '@/react-email-starter/emails/employer-notification-email'
 import { eq, isNull, sql } from 'drizzle-orm'
 import { revalidatePath } from 'next/cache'
+import { z } from 'zod'
+import { NotifyUserType } from '@/features/soon/types'
 
 const schema = z.object({
   revalidationPath: z.string(),
@@ -51,7 +51,7 @@ export const sendNotifyLiveEmails = authedActionClient
             subject: '🚀 Lauch of NextJS Job Board!',
             react: EmployerNotificationEmail({
               url: 'https://www.nextjsjob.com',
-            }),
+            }) as React.ReactNode,
           })
 
           if (error) {
@@ -80,7 +80,7 @@ export const sendNotifyLiveEmails = authedActionClient
             subject: '🚀 Lauch of NextJS Job Board!',
             react: DeveloperNotificationEmail({
               url: 'https://www.nextjsjob.com',
-            }),
+            }) as React.ReactNode,
           })
 
           if (error) {
