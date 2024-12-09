@@ -216,53 +216,53 @@ export function AuthDialog() {
     }
   }
 
-  const signInWith = async (strategy: OAuthStrategy) => {
-    setFormMessage('')
-    try {
-      await signIn.authenticateWithRedirect({
-        strategy,
-        redirectUrl: '/sso-callback',
-        redirectUrlComplete: pathName,
-      })
-    } catch (error) {
-      const err = error as Error
-      console.error('Error during OAuth sign in:', err)
-      errorTitle.current = 'Error during OAuth Sign In'
-      errorDesc.current = err.message
-      setIsError(true)
-    }
-  }
-
   async function handleOAuthSignIn(strategy: OAuthStrategy) {
     if (!signIn || !signUp) return null
 
     try {
-      // First attempt to sign in
-      const signInResult = await signIn.create({
+      // First try to sign in
+      const signInAttempt = await signIn.create({
         strategy,
         redirectUrl: '/sso-callback',
         actionCompleteRedirectUrl: pathName,
       })
 
-      // If the sign-in fails because the user doesn't exist, create a new account
-      if (signInResult.status === 'needs_first_factor') {
-        const signUpResult = await signUp.create({
+      // Handle account exists but needs transfer case
+      if (
+        signInAttempt.status === 'needs_first_factor' &&
+        signUp.verifications?.externalAccount?.status === 'transferable'
+      ) {
+        const signInRes = await signIn.create({
           transfer: true,
+          strategy,
+          redirectUrl: '/sso-callback',
+          actionCompleteRedirectUrl: pathName,
         })
 
-        if (signUpResult.status === 'complete') {
-          await setActiveSignUp({
-            session: signUpResult.createdSessionId,
+        if (signInRes.status === 'complete') {
+          await setActiveSignIn({
+            session: signInRes.createdSessionId,
           })
-          router.push(pathName)
-        } else {
-          // Continue with OAuth flow if more steps are needed
-          await signInWith(strategy)
+          return
         }
-      } else {
-        // Continue with OAuth flow for existing users
-        await signInWith(strategy)
       }
+
+      // If sign in didn't work, try to sign up
+      if (signInAttempt.status === 'needs_first_factor') {
+        await signUp.authenticateWithRedirect({
+          strategy,
+          redirectUrl: '/sso-callback',
+          redirectUrlComplete: pathName,
+        })
+        return
+      }
+
+      // Continue with normal OAuth flow
+      await signIn.authenticateWithRedirect({
+        strategy,
+        redirectUrl: '/sso-callback',
+        redirectUrlComplete: pathName,
+      })
     } catch (error) {
       const err = error as Error
       console.error('Error during OAuth sign in:', err)
