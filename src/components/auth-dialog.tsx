@@ -216,53 +216,59 @@ export function AuthDialog() {
     }
   }
 
+  const signInWith = (strategy: OAuthStrategy) => {
+    return signIn.authenticateWithRedirect({
+      strategy,
+      redirectUrl: '/sign-up/sso-callback',
+      redirectUrlComplete: '/',
+    })
+  }
+
   async function handleOAuthSignIn(strategy: OAuthStrategy) {
-    if (!signIn || !signUp) return null
+    if (!signIn) return null
 
     try {
-      // First try to sign in
-      const signInAttempt = await signIn.create({
-        strategy,
-        redirectUrl: '/sso-callback',
-        actionCompleteRedirectUrl: pathName,
-      })
+      if (!signIn || !signUp) return null
 
-      // Handle account exists but needs transfer case
-      if (
-        signInAttempt.status === 'needs_first_factor' &&
-        signUp.verifications?.externalAccount?.status === 'transferable'
-      ) {
-        const signInRes = await signIn.create({
-          transfer: true,
-          strategy,
-          redirectUrl: '/sso-callback',
-          actionCompleteRedirectUrl: pathName,
-        })
+      // If the user has an account in your application, but does not yet
+      // have an OAuth account connected to it, you can transfer the OAuth
+      // account to the existing user account.
+      const userExistsButNeedsToSignIn =
+        signUp.verifications.externalAccount.status === 'transferable' &&
+        signUp.verifications.externalAccount.error?.code ===
+          'external_account_exists'
 
-        if (signInRes.status === 'complete') {
-          await setActiveSignIn({
-            session: signInRes.createdSessionId,
+      if (userExistsButNeedsToSignIn) {
+        const res = await signIn.create({ transfer: true })
+
+        if (res.status === 'complete') {
+          setActiveSignUp({
+            session: res.createdSessionId,
           })
-          return
         }
       }
 
-      // If sign in didn't work, try to sign up
-      if (signInAttempt.status === 'needs_first_factor') {
-        await signUp.authenticateWithRedirect({
-          strategy,
-          redirectUrl: '/sso-callback',
-          redirectUrlComplete: pathName,
-        })
-        return
-      }
+      // If the user has an OAuth account but does not yet
+      // have an account in your app, you can create an account
+      // for them using the OAuth information.
+      const userNeedsToBeCreated =
+        signIn.firstFactorVerification.status === 'transferable'
 
-      // Continue with normal OAuth flow
-      await signIn.authenticateWithRedirect({
-        strategy,
-        redirectUrl: '/sso-callback',
-        redirectUrlComplete: pathName,
-      })
+      if (userNeedsToBeCreated) {
+        const res = await signUp.create({
+          transfer: true,
+        })
+
+        if (res.status === 'complete') {
+          setActiveSignUp({
+            session: res.createdSessionId,
+          })
+        }
+      } else {
+        // If the user has an account in your application
+        // and has an OAuth account connected to it, you can sign them in.
+        signInWith(strategy)
+      }
     } catch (error) {
       const err = error as Error
       console.error('Error during OAuth sign in:', err)
